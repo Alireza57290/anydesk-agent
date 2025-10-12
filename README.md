@@ -30,15 +30,7 @@ python emergency_release.py
 
 ## Installation
 
-### Option 1: Install from source
-
-```bash
-git clone https://github.com/BryanTheLai/anydeks-agent
-cd anydeks-agent
-pip install -e .
-```
-
-### Option 2: Install dependencies only
+### Install dependencies
 
 ```bash
 pip install -r requirements.txt
