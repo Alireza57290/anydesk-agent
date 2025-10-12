@@ -174,6 +174,7 @@ controller.drag_and_drop(100, 200, 800, 600)
 ### v1.1 - Control your own Remote Computer
 - [ ] WebSocket broker for remote connections
 - [ ] WebRTC P2P (no port forwarding)
+- [ ] Normalization of coordinates (0-1000): [Qwen](https://www.alibabacloud.com/help/en/model-studio/vision), [Gemini](https://cloud.google.com/vertex-ai/generative-ai/docs/bounding-box-detection)
 
 ## ⚠️ Safety
 
