@@ -171,30 +171,9 @@ controller.drag_and_drop(100, 200, 800, 600)
 - [x] Safety mechanisms (auto-release keys, cleanup)
 - [x] Timing configurations (fast/default/slow)
 
-### v1.1 - Performance 🚀
-- [ ] Local lightweight vision model (Florence-2/Qwen2.5-VL-7B)
-- [ ] Video streaming at 30-60 FPS (vs discrete screenshots)
-- [ ] FP8 quantization for 3x speedup
-- [ ] 50-200ms latency (10-40x faster than cloud LLMs)
-
-### v1.2 - Multi-User 🔐
-- [ ] Session management (multiple desktops)
+### v1.1 - Control your own Remote Computer
 - [ ] WebSocket broker for remote connections
-- [ ] Authentication & authorization
-- [ ] Session recording/replay
-
-### v1.3 - Cloud Ready ☁️
 - [ ] WebRTC P2P (no port forwarding)
-- [ ] Hosted version (like Browserbase/E2B)
-- [ ] Pay-per-hour pricing model
-- [ ] API rate limiting & quotas
-
-### v2.0 - Enterprise 🏢
-- [ ] Multi-monitor optimization
-- [ ] Distributed deployment (control 100+ desktops)
-- [ ] Audit logging & compliance
-- [ ] Docker/Kubernetes deployment
-- [ ] Mobile apps (Android/iOS)
 
 ## ⚠️ Safety
 
