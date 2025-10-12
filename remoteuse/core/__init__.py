@@ -1,3 +1,3 @@
-from .actions import DesktopController, ActionResult
+from .actions import DesktopController, ActionResult, TimingConfig
 
-__all__ = ["DesktopController", "ActionResult"]
+__all__ = ["DesktopController", "ActionResult", "TimingConfig"]

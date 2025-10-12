@@ -1,31 +1,66 @@
 """RemoteUse MCP Server - Desktop automation for AI agents."""
 
+import logging
+import threading
 from fastmcp import FastMCP
 from typing import Optional, Literal
 
 from remoteuse.core.actions import DesktopController
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 mcp = FastMCP(name="RemoteUse")
 
-# Singleton controller instance
 _controller: Optional[DesktopController] = None
+_controller_lock = threading.Lock()
 
 
 def get_controller() -> DesktopController:
-    """Get or create the desktop controller instance."""
+    """Get or create the desktop controller instance (thread-safe)."""
     global _controller
-    if _controller is None:
-        _controller = DesktopController()
-    return _controller
+    
+    if _controller is not None:
+        return _controller
+    
+    with _controller_lock:
+        if _controller is None:
+            logger.info("Initializing DesktopController...")
+            _controller = DesktopController()
+            logger.info("DesktopController initialized successfully")
+        return _controller
+
+
+def cleanup_controller():
+    """Cleanup the controller instance."""
+    global _controller
+    if _controller is not None:
+        logger.info("Cleaning up DesktopController...")
+        _controller._cleanup()
+        _controller = None
+        logger.info("DesktopController cleaned up")
 
 
 @mcp.tool()
 def screenshot(monitor: Optional[int] = None) -> dict:
-    """Capture a screenshot of the specified monitor."""
+    """Capture a screenshot of the specified monitor.
+    
+    Args:
+        monitor: Monitor index (None for primary monitor)
+        
+    Returns:
+        dict: Image data with base64 encoded PNG, dimensions, cursor position, timestamp
+    """
+    logger.debug(f"Screenshot requested for monitor: {monitor}")
     result = get_controller().screenshot(monitor)
     if result.success:
+        logger.debug("Screenshot captured successfully")
         return result.data
     else:
+        logger.error(f"Screenshot failed: {result.error}")
         raise Exception(result.error)
 
 
@@ -175,7 +210,11 @@ def main():
     print("🚀 RemoteUse MCP Server starting...")
     print("📱 AI agents can now control this desktop!")
     print("=" * 60)
-    mcp.run()
+    try:
+        mcp.run()
+    finally:
+        cleanup_controller()
+        print("\n👋 RemoteUse MCP Server stopped")
 
 
 if __name__ == "__main__":

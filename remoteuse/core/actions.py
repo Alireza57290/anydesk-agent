@@ -1,6 +1,7 @@
 import time
 import base64
 import platform
+import logging
 from typing import Optional, Literal
 from dataclasses import dataclass, field
 
@@ -11,11 +12,46 @@ from pynput.keyboard import Controller as KeyboardController, Key
 
 
 @dataclass
+class TimingConfig:
+    """Configuration for timing delays in desktop automation."""
+    mouse_move_delay: float = 0.01
+    mouse_click_delay: float = 0.05
+    focus_delay: float = 0.1
+    key_press_delay: float = 0.01
+    key_release_delay: float = 0.02
+    
+    @classmethod
+    def default(cls) -> 'TimingConfig':
+        return cls()
+    
+    @classmethod
+    def fast(cls) -> 'TimingConfig':
+        return cls(
+            mouse_move_delay=0.005,
+            mouse_click_delay=0.02,
+            focus_delay=0.05,
+            key_press_delay=0.005,
+            key_release_delay=0.01
+        )
+    
+    @classmethod
+    def slow(cls) -> 'TimingConfig':
+        return cls(
+            mouse_move_delay=0.02,
+            mouse_click_delay=0.1,
+            focus_delay=0.2,
+            key_press_delay=0.02,
+            key_release_delay=0.05
+        )
+
+
+@dataclass
 class ActionResult:
     success: bool
     message: str = ""
     data: dict = field(default_factory=dict)
-    error: str = None
+    error: Optional[str] = None
+    error_code: Optional[str] = None
 
 
 class DesktopController:
@@ -63,25 +99,46 @@ class DesktopController:
         "pagedown": Key.page_down,
     }
     
-    # Timing constants (in seconds)
-    _MOUSE_MOVE_DELAY = 0.01
-    _MOUSE_CLICK_DELAY = 0.05
-    _FOCUS_DELAY = 0.1
-    _KEY_PRESS_DELAY = 0.01
-    _KEY_RELEASE_DELAY = 0.02
-    
-    def __init__(self):
-        """Initialize the desktop controller."""
+    def __init__(self, timing_config: Optional[TimingConfig] = None, enable_logging: bool = True):
+        """Initialize the desktop controller.
+        
+        Args:
+            timing_config: Optional timing configuration (defaults to TimingConfig.default())
+            enable_logging: Whether to enable logging (default: True)
+        """
         self.mouse = MouseController()
         self.keyboard = KeyboardController()
         self._screenshot_engine = mss.mss()
         self._os_type = platform.system()
         self._held_keys = set()
+        self._timing = timing_config or TimingConfig.default()
         
+        self._logger = logging.getLogger(__name__) if enable_logging else None
+        if self._logger:
+            self._logger.debug(f"DesktopController initialized for {self._os_type}")
+        
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit with cleanup."""
+        self._cleanup()
+        return False
+    
     def __del__(self):
-        self._release_all_held_keys()
+        """Destructor with cleanup."""
+        self._cleanup()
+    
+    def _cleanup(self):
+        """Centralized cleanup of resources."""
+        if hasattr(self, '_held_keys'):
+            self._release_all_held_keys()
         if hasattr(self, '_screenshot_engine'):
-            self._screenshot_engine.close()
+            try:
+                self._screenshot_engine.close()
+            except Exception:
+                pass
     
     def _release_all_held_keys(self):
         """Emergency release all held modifier keys."""
@@ -169,14 +226,14 @@ class DesktopController:
         
         try:
             self.mouse.position = (x, y)
-            time.sleep(self._MOUSE_MOVE_DELAY)
+            time.sleep(self._timing.mouse_move_delay)
             
             btn = self._BUTTON_MAP[button]
             
             for _ in range(count):
                 self.mouse.click(btn)
                 if count > 1:
-                    time.sleep(self._MOUSE_CLICK_DELAY)
+                    time.sleep(self._timing.mouse_click_delay)
             
             return ActionResult(
                 success=True,
@@ -251,13 +308,13 @@ class DesktopController:
             btn = self._BUTTON_MAP[button]
             
             self.mouse.position = (from_x, from_y)
-            time.sleep(self._MOUSE_MOVE_DELAY)
+            time.sleep(self._timing.mouse_move_delay)
             
             self.mouse.press(btn)
-            time.sleep(self._MOUSE_CLICK_DELAY)
+            time.sleep(self._timing.mouse_click_delay)
             
             self.mouse.position = (to_x, to_y)
-            time.sleep(self._MOUSE_CLICK_DELAY)
+            time.sleep(self._timing.mouse_click_delay)
             
             self.mouse.release(btn)
             
@@ -301,7 +358,7 @@ class DesktopController:
         
         try:
             self.mouse.position = (x, y)
-            time.sleep(self._MOUSE_MOVE_DELAY)
+            time.sleep(self._timing.mouse_move_delay)
             
             scroll_map = {
                 "up": (0, amount),
@@ -405,9 +462,9 @@ class DesktopController:
         
         try:
             self.mouse.position = (x, y)
-            time.sleep(self._MOUSE_MOVE_DELAY)
+            time.sleep(self._timing.mouse_move_delay)
             self.mouse.click(Button.left)
-            time.sleep(self._FOCUS_DELAY)
+            time.sleep(self._timing.focus_delay)
             
             if clear:
                 modifier_key = Key.cmd if self._os_type == "Darwin" else Key.ctrl
@@ -417,13 +474,13 @@ class DesktopController:
                     self.keyboard.release('a')
                 finally:
                     self.keyboard.release(modifier_key)
-                time.sleep(self._KEY_RELEASE_DELAY)
+                time.sleep(self._timing.key_release_delay)
                 self.keyboard.press(Key.backspace)
                 self.keyboard.release(Key.backspace)
-                time.sleep(self._KEY_RELEASE_DELAY)
+                time.sleep(self._timing.key_release_delay)
             
             self.keyboard.type(text)
-            time.sleep(self._MOUSE_CLICK_DELAY)
+            time.sleep(self._timing.mouse_click_delay)
             
             if submit:
                 self.keyboard.press(Key.enter)
@@ -519,7 +576,7 @@ class DesktopController:
             
             for mod in modifiers:
                 self.keyboard.press(mod)
-                time.sleep(self._KEY_PRESS_DELAY)
+                time.sleep(self._timing.key_press_delay)
             
             if main_key in self._MODIFIER_MAP:
                 self.keyboard.press(self._MODIFIER_MAP[main_key])
@@ -528,7 +585,7 @@ class DesktopController:
                 self.keyboard.press(main_key)
                 self.keyboard.release(main_key)
             
-            time.sleep(self._KEY_RELEASE_DELAY)
+            time.sleep(self._timing.key_release_delay)
             
             return ActionResult(
                 success=True,
