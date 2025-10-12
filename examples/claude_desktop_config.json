@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "remoteuse": {
+      "command": "python",
+      "args": ["-m", "remoteuse.server.mcp_server"],
+      "env": {}
+    }
+  }
+}

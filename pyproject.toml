@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "remoteuse"
+version = "1.0.0"
+description = "Remote desktop control infrastructure for AI agents"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Bryan Lai"}
+]
+dependencies = [
+    "fastmcp>=2.0.0",
+    "mss>=9.0.1",
+    "pynput>=1.7.6",
+]
+
+[project.scripts]
+remoteuse = "remoteuse.server.mcp_server:main"
