@@ -1,3 +1,4 @@
+
 # RemoteUse 🚀
 
 Remote desktop control for AI agents using vision-based primitives.
@@ -8,13 +9,14 @@ An MCP server that lets AI agents control your desktop through 12 simple actions
 
 ## Features
 
-✅ **12 semantic actions** - click_at, hover_at, drag_and_drop, scroll_at, type_text_at, etc.  
+✅ **12 semantic actions** - click_at, hover_at, drag_and_drop, scroll_at, type_text_at  
 ✅ **Vision-first design** - AI sees screen, decides actions  
 ✅ **Cross-platform** - Windows, macOS, Linux  
 ✅ **MCP native** - Works with Claude Desktop, any MCP client  
 ✅ **Ultra-fast screenshots** - 16-47ms using mss library  
 ✅ **Safety mechanisms** - Auto-releases stuck keys, emergency cleanup  
 ✅ **Zero-config** - Install, run, connect
+
 
 ## ⚠️ Safety Warning
 
@@ -26,33 +28,28 @@ An MCP server that lets AI agents control your desktop through 12 simple actions
 **If keys get stuck:** Run the emergency release script immediately:
 ```bash
 python emergency_release.py
-```  
+```
+
 
 ## Installation
 
-### Install dependencies
-
-```bash
+```
 pip install -r requirements.txt
 ```
 
 ## Quick Start
 
-### 1. Run RemoteUse Server
+### 1. Run Server
 
-```bash
+```
 python -m remoteuse.server.mcp_server
 ```
 
 ### 2. Configure Claude Desktop
 
-Add to your Claude Desktop config file:
+Add to your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on Mac):
 
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`  
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
-**Linux:** `~/.config/Claude/claude_desktop_config.json`
-
-```json
+```
 {
   "mcpServers": {
     "remoteuse": {
@@ -68,76 +65,51 @@ Add to your Claude Desktop config file:
 ```
 Me: "Screenshot my desktop"
 Claude: *calls screenshot() tool*
-Claude: "I can see your desktop. You have Chrome and VS Code open."
+Claude: "I can see Chrome and VS Code open."
 
 Me: "Open Notepad and type 'Hello AI'"
 Claude: *calls click_at(), type_text(), etc.*
-Claude: "Done! I opened Notepad and typed the message."
+Claude: "Done!"
 ```
 
 ## Available Actions
 
 ### Observation
-- **`screenshot(monitor)`** - Capture screen as base64-encoded PNG
-  - Returns: image_base64, width, height, cursor_position, timestamp
+- `screenshot(monitor)` - Capture screen as base64 PNG
 
-### Mouse Actions
-- **`click_at(x, y, button, count)`** - Click at coordinates
-  - button: "left", "right", "middle"
-  - count: 1 (single), 2 (double), 3 (triple)
-  
-- **`hover_at(x, y, duration_ms)`** - Hover to reveal menus/tooltips
-  
-- **`drag_and_drop(from_x, from_y, to_x, to_y, button)`** - Drag operation
-  
-- **`scroll_at(x, y, direction, amount)`** - Scroll at position
-  - direction: "up", "down", "left", "right"
-  
-- **`mouse_move(x, y)`** - Move cursor (low-level control)
+### Mouse
+- `click_at(x, y, button, count)` - Click (single/double/triple, left/right/middle)
+- `hover_at(x, y, duration_ms)` - Hover to reveal menus
+- `drag_and_drop(from_x, from_y, to_x, to_y, button)` - Drag operation
+- `scroll_at(x, y, direction, amount)` - Scroll up/down/left/right
+- `mouse_move(x, y)` - Move cursor
 
-### Keyboard Actions
-- **`type_text(text, delay_ms)`** - Type string at cursor
-  
-- **`type_text_at(x, y, text, clear, submit)`** - **BEST for forms!**
-  - Click field, optionally clear, type, optionally submit
-  
-- **`key_press(key)`** - Press single key
-  - Examples: "enter", "escape", "tab", "f5", "a"
-  
-- **`key_combination(keys)`** - Key combos
-  - Examples: "ctrl+c", "alt+f4", "cmd+space", "ctrl+shift+t"
-  
-- **`key_hold(key)` / `key_release(key)`** - Hold modifiers
-  - For multi-select: Ctrl+click, Shift+click
+### Keyboard
+- `type_text(text, delay_ms)` - Type string
+- `type_text_at(x, y, text, clear, submit)` - **BEST for forms!**
+- `key_press(key)` - Single key ("enter", "escape", "f5", "a")
+- `key_combination(keys)` - Combos ("ctrl+c", "cmd+space")
+- `key_hold(key)` / `key_release(key)` - Hold modifiers
 
 ### Timing
-- **`wait(duration_ms)`** - Pause execution
+- `wait(duration_ms)` - Pause execution
 
 ## Use Cases
 
-1. **Customer Support** - AI troubleshoots user issues remotely
-2. **Data Entry** - Automate form filling across any application
-3. **QA Testing** - Test desktop applications automatically
-4. **Personal Automation** - "Organize my desktop files", "Check my email"
+1. **Customer Support** - AI troubleshoots user issues
+2. **Data Entry** - Automate form filling
+3. **QA Testing** - Test desktop apps
+4. **Personal Automation** - "Organize my desktop files"
 5. **Remote Work** - Control office computer from home
 
 ## Architecture
 
 ```
-┌─────────────────┐
-│  AI Agent       │  Claude/GPT/Qwen analyzes screenshots
-│ (Vision Model)  │  Decides what actions to take
-└────────┬────────┘
-         │ MCP Protocol
-┌────────▼────────┐
-│  RemoteUse      │  FastMCP server exposes 12 tools
-│  MCP Server     │  Routes commands to desktop
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│ Desktop Agent   │  Executes on physical laptop
-│ (Your Laptop)   │  mss (screenshots) + pynput (input)
-└─────────────────┘
+AI Agent (Claude/GPT/Qwen)
+    ↓ MCP Protocol
+RemoteUse MCP Server
+    ↓
+Desktop Controller (mss + pynput)
 ```
 
 ## Why RemoteUse?
@@ -189,26 +161,49 @@ controller.key_release("ctrl")
 controller.drag_and_drop(100, 200, 800, 600)
 ```
 
-## Requirements
-
-- Python 3.9+
-- Windows, macOS, or Linux
-- Dependencies: fastmcp, mss, pynput
 
 ## Roadmap
 
+### v1.0 (Current) ✅
 - [x] Core 12 primitives
-- [x] MCP server
-- [x] Cross-platform support
-- [ ] WebRTC P2P (no port forwarding needed)
-- [ ] Multi-session support
+- [x] MCP server implementation
+- [x] Cross-platform support (Windows/Mac/Linux)
+- [x] Safety mechanisms (auto-release keys, cleanup)
+- [x] Timing configurations (fast/default/slow)
+
+### v1.1 - Performance 🚀
+- [ ] Local lightweight vision model (Florence-2/Qwen2.5-VL-7B)
+- [ ] Video streaming at 30-60 FPS (vs discrete screenshots)
+- [ ] FP8 quantization for 3x speedup
+- [ ] 50-200ms latency (10-40x faster than cloud LLMs)
+
+### v1.2 - Multi-User 🔐
+- [ ] Session management (multiple desktops)
+- [ ] WebSocket broker for remote connections
+- [ ] Authentication & authorization
 - [ ] Session recording/replay
-- [ ] Browser integration for cloud deployment
+
+### v1.3 - Cloud Ready ☁️
+- [ ] WebRTC P2P (no port forwarding)
+- [ ] Hosted version (like Browserbase/E2B)
+- [ ] Pay-per-hour pricing model
+- [ ] API rate limiting & quotas
+
+### v2.0 - Enterprise 🏢
+- [ ] Multi-monitor optimization
+- [ ] Distributed deployment (control 100+ desktops)
+- [ ] Audit logging & compliance
+- [ ] Docker/Kubernetes deployment
 - [ ] Mobile apps (Android/iOS)
 
-## Security Notes
+## ⚠️ Safety
 
-⚠️ **Important**: RemoteUse gives AI agents direct control over your desktop. Only use with trusted AI agents and secure your MCP server appropriately.
+**RemoteUse controls your desktop directly.** The code includes:
+- Auto-release held modifiers on cleanup
+- Try-finally blocks in key combinations
+- Emergency release script: `python emergency_release.py`
+
+Only use with trusted AI agents!
 
 ## License
 
@@ -216,9 +211,4 @@ MIT
 
 ## Credits
 
-Built with:
-- [FastMCP](https://github.com/jlowin/fastmcp) - MCP server framework
-- [mss](https://github.com/BoboTiG/python-mss) - Ultra-fast screenshots
-- [pynput](https://github.com/moses-palmer/pynput) - Cross-platform input control
-
-Inspired by Browserbase, E2B, and the amazing AI agent community.
+Built with [FastMCP](https://github.com/jlowin/fastmcp), [mss](https://github.com/BoboTiG/python-mss), [pynput](https://github.com/moses-palmer/pynput).
