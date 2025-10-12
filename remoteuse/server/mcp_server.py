@@ -1,22 +1,28 @@
+"""RemoteUse MCP Server - Desktop automation for AI agents."""
+
 from fastmcp import FastMCP
 from typing import Optional, Literal
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from remoteuse.core.actions import DesktopController
 
-mcp = FastMCP(
-    name="RemoteUse"
-)
+mcp = FastMCP(name="RemoteUse")
 
-controller = DesktopController()
+# Singleton controller instance
+_controller: Optional[DesktopController] = None
+
+
+def get_controller() -> DesktopController:
+    """Get or create the desktop controller instance."""
+    global _controller
+    if _controller is None:
+        _controller = DesktopController()
+    return _controller
 
 
 @mcp.tool()
 def screenshot(monitor: Optional[int] = None) -> dict:
-    result = controller.screenshot(monitor)
+    """Capture a screenshot of the specified monitor."""
+    result = get_controller().screenshot(monitor)
     if result.success:
         return result.data
     else:
@@ -30,7 +36,8 @@ def click_at(
     button: Literal["left", "right", "middle"] = "left",
     count: int = 1
 ) -> str:
-    result = controller.click_at(x, y, button, count)
+    """Click at screen coordinates."""
+    result = get_controller().click_at(x, y, button, count)
     if result.success:
         return result.message
     else:
@@ -39,7 +46,8 @@ def click_at(
 
 @mcp.tool()
 def hover_at(x: int, y: int, duration_ms: int = 300) -> str:
-    result = controller.hover_at(x, y, duration_ms)
+    """Hover mouse at coordinates for specified duration."""
+    result = get_controller().hover_at(x, y, duration_ms)
     if result.success:
         return result.message
     else:
@@ -54,7 +62,8 @@ def drag_and_drop(
     to_y: int,
     button: Literal["left", "right", "middle"] = "left"
 ) -> str:
-    result = controller.drag_and_drop(from_x, from_y, to_x, to_y, button)
+    """Drag from one location to another."""
+    result = get_controller().drag_and_drop(from_x, from_y, to_x, to_y, button)
     if result.success:
         return result.message
     else:
@@ -68,7 +77,8 @@ def scroll_at(
     direction: Literal["up", "down", "left", "right"] = "down",
     amount: int = 3
 ) -> str:
-    result = controller.scroll_at(x, y, direction, amount)
+    """Scroll at specified coordinates."""
+    result = get_controller().scroll_at(x, y, direction, amount)
     if result.success:
         return result.message
     else:
@@ -77,7 +87,8 @@ def scroll_at(
 
 @mcp.tool()
 def mouse_move(x: int, y: int) -> str:
-    result = controller.mouse_move(x, y)
+    """Move mouse cursor to coordinates."""
+    result = get_controller().mouse_move(x, y)
     if result.success:
         return result.message
     else:
@@ -86,7 +97,8 @@ def mouse_move(x: int, y: int) -> str:
 
 @mcp.tool()
 def type_text(text: str, delay_ms: int = 0) -> str:
-    result = controller.type_text(text, delay_ms)
+    """Type text at current cursor position."""
+    result = get_controller().type_text(text, delay_ms)
     if result.success:
         return result.message
     else:
@@ -101,7 +113,8 @@ def type_text_at(
     clear: bool = True,
     submit: bool = False
 ) -> str:
-    result = controller.type_text_at(x, y, text, clear, submit)
+    """Click at coordinates, optionally clear, type text, and optionally submit."""
+    result = get_controller().type_text_at(x, y, text, clear, submit)
     if result.success:
         return result.message
     else:
@@ -110,7 +123,8 @@ def type_text_at(
 
 @mcp.tool()
 def key_press(key: str) -> str:
-    result = controller.key_press(key)
+    """Press and release a single key."""
+    result = get_controller().key_press(key)
     if result.success:
         return result.message
     else:
@@ -119,7 +133,8 @@ def key_press(key: str) -> str:
 
 @mcp.tool()
 def key_combination(keys: str) -> str:
-    result = controller.key_combination(keys)
+    """Press a key combination (e.g., 'ctrl+c')."""
+    result = get_controller().key_combination(keys)
     if result.success:
         return result.message
     else:
@@ -128,7 +143,8 @@ def key_combination(keys: str) -> str:
 
 @mcp.tool()
 def key_hold(key: str) -> str:
-    result = controller.key_hold(key)
+    """Hold down a modifier key."""
+    result = get_controller().key_hold(key)
     if result.success:
         return result.message
     else:
@@ -137,7 +153,8 @@ def key_hold(key: str) -> str:
 
 @mcp.tool()
 def key_release(key: str) -> str:
-    result = controller.key_release(key)
+    """Release a held modifier key."""
+    result = get_controller().key_release(key)
     if result.success:
         return result.message
     else:
@@ -146,7 +163,8 @@ def key_release(key: str) -> str:
 
 @mcp.tool()
 def wait(duration_ms: int) -> str:
-    result = controller.wait(duration_ms)
+    """Wait for specified duration in milliseconds."""
+    result = get_controller().wait(duration_ms)
     if result.success:
         return result.message
     else:

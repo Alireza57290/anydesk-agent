@@ -16,11 +16,13 @@ class TestMCPServerImport:
         assert mcp.name == "RemoteUse"
     
     def test_controller_instance_exists(self):
-        from remoteuse.server.mcp_server import controller
+        from remoteuse.server.mcp_server import get_controller
+        controller = get_controller()
         assert controller is not None
     
     def test_controller_works(self):
-        from remoteuse.server.mcp_server import controller
+        from remoteuse.server.mcp_server import get_controller
+        controller = get_controller()
         result = controller.wait(10)
         assert result.success is True
 
