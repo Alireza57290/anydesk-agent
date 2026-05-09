@@ -1,0 +1,24 @@
+name: AnyDesk on GitHub Actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+    - name: Download AnyDesk
+      run: |
+        Invoke-WebRequest -Uri "https://download.anydesk.com/AnyDesk.exe" -OutFile "AnyDesk.exe"
+        
+    - name: Run AnyDesk
+      run: |
+        Start-Process -FilePath ".\AnyDesk.exe" -ArgumentList "--silent"
+        Start-Sleep -Seconds 5
+        
+        $id = & ".\AnyDesk.exe" --get-id
+        echo "========================================="
+        echo "✅ AnyDesk ID: $id"
+        echo "========================================="
+        
+        for ($i = 0; $i -lt 360; $i++) { Start-Sleep -Seconds 60 }
